@@ -14,6 +14,7 @@ This repository shows how to configure link:https://github.com/features/actions[
   ** `linux-amd64`
   ** `linux-arm64`
   ** `darwin-arm64`
+  ** `darwin-amd64`
   ** `windows-amd64`
   ** `windows-arm64`
  * assemble zip distributions with JReleaser

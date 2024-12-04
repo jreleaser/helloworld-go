@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: 'Build ${{ matrix.job.goos }}-${{ matrix.job.arch }}'
+    strategy:
+      fail-fast: true
+      matrix:
+        job:
+          - { goos: darwin,  arch: arm64, platform: osx-aarch_64     }
+          - { goos: darwin,  arch: amd64, platform: osx-x86_64       }
+          - { goos: linux,   arch: arm64, platform: linux-aarch_64   }
+          - { goos: linux,   arch: amd64, platform: linux-x86_64     }
+          - { goos: windows, arch: arm64, platform: windows-aarch_64 }
+          - { goos: windows, arch: amd64, platform: windows-x86_64   }
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Go toolchain
+        uses: actions/setup-go@v5
+
+      - name: Compile
+        run: |
+          go build -o target/${{ matrix.job.goos }}-${{ matrix.job.arch }}/ src/helloworld.go
+        env:
+          GOOS: ${{ matrix.job.goos }}
+          GOARCH: ${{ matrix.job.arch }}
+
+      - name: Assemble
+        uses: jreleaser/release-action@v2
+        with:
+          arguments: assemble
+        env:
+          JRELEASER_PROJECT_VERSION: ${{ inputs.version }}
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PLATFORM_OVERRIDE: ${{ matrix.job.platform }}
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jreleaser-assemble-${{ matrix.job.platform }}
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 1
+          name: artifact-${{ matrix.job.platform }}
+          path: |
+            out/jreleaser/assemble/helloworld/archive/*.zip
