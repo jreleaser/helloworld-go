@@ -1,0 +1,63 @@
+environment:
+  properties:
+    artifactsDir: out/jreleaser/assemble/helloworld/archive
+
+project:
+  name: helloworld
+  description: HelloWorld in Go
+  longDescription: HelloWorld in Go
+  links:
+    homepage: https://github.com/jreleaser/helloworld-go
+  authors:
+    - Andres Almiray
+  license: MIT
+  inceptionYear: 2024
+  stereotype: CLI
+
+platform:
+  replacements:
+    'x86_64': 'amd64'
+    'aarch_64': 'arm64'
+    'osx': 'darwin'
+    
+release:
+  github:
+    name: helloworld-go
+    overwrite: true
+    changelog:
+      formatted: ALWAYS
+      preset: conventional-commits
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+
+assemble:
+  archive:
+    helloworld:
+      active: ALWAYS
+      formats: [ ZIP ]
+      attachPlatform: true
+      fileSets:
+        - input: 'target/{{ osPlatformReplaced }}'
+          output: 'bin'
+          includes: [ 'helloworld{.exe,}' ]
+        - input: '.'
+          includes: [ 'LICENSE' ]
+
+distributions:
+  helloworld:
+    type: BINARY
+    executable:
+      windowsExtension: exe
+    artifacts:
+      - path: '{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-darwin-arm64.zip'
+        platform: 'darwin-arm64'
+      - path: '{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-darwin-amd64.zip'
+        platform: 'darwin-amd64'
+      - path: '{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-windows-arm64.zip'
+        platform: 'windows-arm64'
+      - path: '{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-windows-amd64.zip'
+        platform: 'windows-amd64'
+      - path: '{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-linux-arm64.zip'
+        platform: 'linux-arm64'
+      - path: '{{artifactsDir}}/{{distributionName}}-{{projectVersion}}-linux-amd64.zip'
+        platform: 'linux-amd64'
